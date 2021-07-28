@@ -8,7 +8,7 @@ exports.handler = async function (event, context) {
     console.log(event);
     const apiRequestId = event.requestContext.requestId;
     const lambdaRequestId = context.awsRequestId;
-    console.log(`API Gateway RequestId: ${​​​apiRequestId}​​​ - Lambda RequestId: ${​​​lambdaRequestId}​​​`);
+    console.log(`API Gateway RequestId: ${apiRequestId}​ - Lambda RequestId: ${lambdaRequestId}​​`);
     if (event.resource === "/products") {
 
         if (method === "GET") {
