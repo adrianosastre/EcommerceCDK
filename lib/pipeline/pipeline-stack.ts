@@ -2,6 +2,7 @@ import * as codepipeline from "@aws-cdk/aws-codepipeline";
 import * as codepipelineactions from "@aws-cdk/aws-codepipeline-actions";
 import * as cdk from "@aws-cdk/core";
 import { CdkPipeline, SimpleSynthAction } from '@aws-cdk/pipelines';
+import { ECommerceStage } from './ecommerce-stage';
 
 export class PipelineStack extends cdk.Stack {
     constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
@@ -33,8 +34,16 @@ export class PipelineStack extends cdk.Stack {
                     privileged: true, // necessário para executar o docker no processo de build
                 }
             }), // gerar o código fonte (compilar)
-
-            // TODO add pipeline stages
         });
+
+        // add pipeline stages:
+        pipeline.addApplicationStage(
+            new ECommerceStage(this, 'Stage1', {
+                env: {
+                    account: '685730834918',
+                    region: 'us-east-1',
+                },
+            })
+        );
     }
 }
