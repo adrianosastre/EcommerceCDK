@@ -26,8 +26,8 @@ export class PipelineStack extends cdk.Stack {
             synthAction: SimpleSynthAction.standardNpmSynth({
                 sourceArtifact: sourceArtifact,
                 cloudAssemblyArtifact: cloudAssemblyArtifact,
-                // installCommand: 'npx npm@7 install && npm install -g aws-cdk' // npm version 7 in machine
-                installCommand: 'npm install -g aws-cdk',
+                // installCommand: 'npx npm@7 install ...' // npm version 7 in machine
+                installCommand: 'npx npm@6 install && npm install -g typescript && npm install -g aws-cdk',
                 buildCommand: 'npm run build',
                 environment: {
                     privileged: true, // necessário para executar o docker no processo de build
@@ -35,6 +35,6 @@ export class PipelineStack extends cdk.Stack {
             }), // gerar o código fonte (compilar)
 
             // TODO add pipeline stages
-        })
+        });
     }
 }
