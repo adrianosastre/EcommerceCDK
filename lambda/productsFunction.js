@@ -15,28 +15,27 @@ exports.handler = async function (event, context) {
 
             console.log("GET /products");
             return{
-
                 statusCode: 200,
                 headers:{
-                }​​​,
+
+                                },
                 body: JSON.stringify({
 
                     message: "GET Products",
                     ApiGwRequestId: apiRequestId,
                     LambdaRequestId: lambdaRequestId,
-            }​​​),
-        }​​​;
-    }​​​
-}​​​
-    return{
+            }),
+            };
+    }
+}   return{
 
         statusCode: 400,
         headers:{
-        }​​​,
+        },
         body: JSON.stringify({
 
             message: "Bad request",
             ApiGwRequestId: apiRequestId,
             LambdaRequestId: lambdaRequestId,
-    }​​​),
-}​​​;}​​​;
+        }),
+};};
