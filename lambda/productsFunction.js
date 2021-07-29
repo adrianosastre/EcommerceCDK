@@ -43,6 +43,67 @@ exports.handler = async function (event, context) {
                 body: JSON.stringify(product),
             };
         }
+    } else if (event.resource === "/products/{id}") {
+        const productId = event.pathParameters.id;
+        if (method === 'GET') {
+            const data = await getProduct(productId);
+            if (data && data.Item) {
+                return {
+                    statusCode: 200,
+                    headers: {
+                    },
+                    body: JSON.stringify(data.Item),
+                };
+            } else {
+                return {
+                    statusCode: 404,
+                    headers: {
+                    },
+                    body: JSON.stringify(`Product with id ${productId} not found.`),
+                };
+            }
+        }
+        else if (method === 'PUT') {
+            const data = await getProduct(productId);
+            if (data && data.Item) {
+                const product = JSON.parse(event.body);
+                const result = await updateProduct(productId, product);
+                console.debug ('update result:', result);
+                return {
+                    statusCode: 200,
+                    headers: {
+                    },
+                    body: JSON.stringify(product),
+                };
+            } else {
+                return {
+                    statusCode: 404,
+                    headers: {
+                    },
+                    body: JSON.stringify(`Product with id ${productId} not found.`),
+                };
+            }
+        }
+        else if (method === 'DELETE') {
+            const data = await getProduct(productId);
+            if (data && data.Item) {
+                const result = await deleteProduct(productId);
+                console.debug ('delete result:', result);
+                return {
+                    statusCode: 200,
+                    headers: {
+                    },
+                    body: JSON.stringify(data.Item),
+                };
+            } else {
+                return {
+                    statusCode: 404,
+                    headers: {
+                    },
+                    body: JSON.stringify(`Product with id ${productId} not found.`),
+                };
+            }
+        }
     }
 
     return {
@@ -56,10 +117,61 @@ exports.handler = async function (event, context) {
     };
 };
 
+function deleteProduct(id) {
+    const params = {
+        TableName: productsDdb,
+        Key: {
+            id: id,
+        },
+        ReturnValues: 'ALL_OLD',
+    };
+    try {
+        return ddbClient.delete(params).promise();
+    } catch (err) {
+        return err;
+    }
+}
+
+function getProduct(id) {
+    const params = {
+        TableName: productsDdb,
+        Key: {
+            id: id,
+        },
+    };
+    try {
+        return ddbClient.get(params).promise();
+    } catch (err) {
+        return err;
+    }
+}
+
+function updateProduct(id, product) {
+    const params = {
+        TableName: productsDdb,
+        Key: {
+            id: id,
+        },
+        UpdateExpression: "set productName = :n, code = :c, price = :p, model = :m",
+        ExpressionAttributeValues: {
+            ':n': product.productName,
+            ':c': product.code,
+            ':p': product.price,
+            ':m': product.model,
+        },
+        ReturnValues: 'UPDATED_NEW',
+    };
+    try {
+        return ddbClient.update(params).promise();
+    } catch (err) {
+        return err;
+    }
+}
+
 function getAllProducts() {
     const params = {
         TableName: productsDdb,
-    }
+    };
     try {
         return ddbClient.scan(params).promise();
     } catch (err) {
@@ -77,7 +189,7 @@ function createProduct(product) {
             price: product.price,
             model: product.model
         }
-    }
+    };
     try {
         return ddbClient.put(params).promise();
     } catch (err) {
