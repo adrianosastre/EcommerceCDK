@@ -1,6 +1,8 @@
 import * as cdk from "@aws-cdk/core";
 import { ProductsFunctionStack } from "../stacks/productsFunction-stack";
 import { EcommerceApiStack } from "../stacks/ecommerceApi-stack";
+import { ProductsDdbStack } from '../stacks/productsDdb-stack';
+
 export class ECommerceStage extends cdk.Stage {
   public readonly urlOutput: cdk.CfnOutput;
 
@@ -12,13 +14,23 @@ export class ECommerceStage extends cdk.Stage {
       ["team"]: "adrianosastre",
     };
 
-    const productsFunctionStack = new ProductsFunctionStack(
+    const productsDdbStack = new ProductsDdbStack(
       this,
-      "ProductsFunctionStack",
+      "ProductsDdbStack",
       {
         tags: tags,
       }
     );
+
+    const productsFunctionStack = new ProductsFunctionStack(
+      this,
+      "ProductsFunctionStack",
+      productsDdbStack.table,
+      {
+        tags: tags,
+      }
+    );
+    productsFunctionStack.addDependency(productsDdbStack);
 
     const ecommerceApiStack = new EcommerceApiStack(
       this,

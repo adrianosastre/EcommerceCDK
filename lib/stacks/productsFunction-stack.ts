@@ -1,11 +1,16 @@
 import * as cdk from "@aws-cdk/core";
 import * as lambda from "@aws-cdk/aws-lambda";
 import * as lambdaNodeJS from "@aws-cdk/aws-lambda-nodejs";
+import * as dynamodb from "@aws-cdk/aws-dynamodb";
 
 export class ProductsFunctionStack extends cdk.Stack {
     readonly handler: lambdaNodeJS.NodejsFunction;
 
-    constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
+    constructor(
+        scope: cdk.Construct,
+        id: string,
+        productsDdb: dynamodb.Table,
+        props?: cdk.StackProps) {
         super(scope, id, props);
 
         this.handler = new lambdaNodeJS.NodejsFunction(this, 'ProductsFunction', {
@@ -19,6 +24,11 @@ export class ProductsFunctionStack extends cdk.Stack {
             tracing: lambda.Tracing.ACTIVE,
             memorySize: 128,
             timeout: cdk.Duration.seconds(10),
+            environment: {
+                PRODUCTS_DDB: productsDdb.tableName,
+            }
         });
+
+        productsDdb.grantReadWriteData(this.handler);
     }
 }
