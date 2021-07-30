@@ -18,5 +18,25 @@ export class ProductsDdbStack extends cdk.Stack {
       readCapacity: 1,
       writeCapacity: 1,
     });
+
+    const readScale = this.table.autoScaleReadCapacity({
+      maxCapacity: 10,
+      minCapacity: 1,
+    });
+    readScale.scaleOnUtilization({
+      targetUtilizationPercent: 50, // porcentagem que triga o upscale
+      scaleInCooldown: cdk.Duration.seconds(30), // tempo de espera entre 1 upscale e o seguinte
+      scaleOutCooldown: cdk.Duration.seconds(30), // tempo de espera entre 1 downscale e o seguinte
+    });
+
+    const writeScale = this.table.autoScaleWriteCapacity({
+      maxCapacity: 5,
+      minCapacity: 1,
+    });
+    writeScale.scaleOnUtilization({
+      targetUtilizationPercent: 70, // porcentagem que triga o upscale
+      scaleInCooldown: cdk.Duration.seconds(60), // tempo de espera entre 1 upscale e o seguinte
+      scaleOutCooldown: cdk.Duration.seconds(60), // tempo de espera entre 1 downscale e o seguinte
+    });
   }
 }
