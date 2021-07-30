@@ -35,7 +35,7 @@ export class ECommerceStage extends cdk.Stage {
     const productEventsFunctionStack = new ProductEventsFunctionStack(
       this,
       "ProductEventsFunctionStack",
-      productsDdbStack.table,
+      eventsDdbStack.table,
       {
         tags: tags,
       }
