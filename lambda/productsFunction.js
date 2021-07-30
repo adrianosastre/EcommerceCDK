@@ -187,13 +187,13 @@ function updateProduct(id, product) {
         Key: {
             id: id,
         },
-        UpdateExpression: "set productName = :n, code = :c, price = :p, model = :m, url = :u",
+        UpdateExpression: "set productName = :n, code = :c, price = :p, model = :m, productUrl = :u",
         ExpressionAttributeValues: {
             ':n': product.productName,
             ':c': product.code,
             ':p': product.price,
             ':m': product.model,
-            ':u': product.url,
+            ':u': product.productUrl,
         },
         ReturnValues: 'UPDATED_NEW',
     };
@@ -224,7 +224,7 @@ function createProduct(product) {
             code: product.code,
             price: product.price,
             model: product.model,
-            url: product.url
+            productUrl: product.productUrl
         }
     };
     try {
