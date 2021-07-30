@@ -102,7 +102,7 @@ exports.handler = async function (event, context) {
                 const deleteResultPromise = deleteProduct(productId);
                 const eventResultPromise = createProductEvent(data.Item, 'PRODUCT_DELETED', 'clotilde', lambdaRequestId);
 
-                const results = await Promise.all(deleteResultPromise, eventResultPromise);
+                const results = await Promise.all([deleteResultPromise, eventResultPromise]);
 
                 console.debug('delete result:', results[0]);
                 console.debug('delete createProductEvent lambda response:', results[1]);
