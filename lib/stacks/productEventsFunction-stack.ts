@@ -3,21 +3,20 @@ import * as lambda from "@aws-cdk/aws-lambda";
 import * as lambdaNodeJS from "@aws-cdk/aws-lambda-nodejs";
 import * as dynamodb from "@aws-cdk/aws-dynamodb";
 
-export class ProductsFunctionStack extends cdk.Stack {
+export class ProductEventsFunctionStack extends cdk.Stack {
   readonly handler: lambdaNodeJS.NodejsFunction;
 
   constructor(
     scope: cdk.Construct,
     id: string,
-    productsDdb: dynamodb.Table,
-    productEventsFunction: lambdaNodeJS.NodejsFunction,
+    eventsDdb: dynamodb.Table,
     props?: cdk.StackProps
   ) {
     super(scope, id, props);
 
-    this.handler = new lambdaNodeJS.NodejsFunction(this, "ProductsFunction", {
-      functionName: "ProductsFunction",
-      entry: "lambda/productsFunction.js",
+    this.handler = new lambdaNodeJS.NodejsFunction(this, "ProductEventsFunction", {
+      functionName: "ProductEventsFunction",
+      entry: "lambda/productEventsFunction.js",
       handler: "handler",
       bundling: {
         minify: false,
@@ -27,12 +26,10 @@ export class ProductsFunctionStack extends cdk.Stack {
       memorySize: 128,
       timeout: cdk.Duration.seconds(10),
       environment: {
-        PRODUCTS_DDB: productsDdb.tableName,
-        PRODUCT_EVENTS_FUNCTION_NAME: productEventsFunction.functionName,
+        EVENTS_DDB: eventsDdb.tableName,
       },
     });
 
-    productsDdb.grantReadWriteData(this.handler);
-    productEventsFunction.grantInvoke(this.handler);
+    eventsDdb.grantWriteData(this.handler);
   }
 }
