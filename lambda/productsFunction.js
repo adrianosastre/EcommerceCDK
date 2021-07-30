@@ -138,7 +138,7 @@ exports.handler = async function (event, context) {
 function createProductEvent(product, eventType, username, lambdaRequestId) {
     const params = {
         FunctionName: productEventsFunctionName,
-        InvocationType: 'RequestResponse', // invocação síncrona
+        InvocationType: 'Event', // invocação síncrona = RequestResponse, assíncrona = Event
         Payload: JSON.stringify({
             productEvent: {
                 requestId: lambdaRequestId,
