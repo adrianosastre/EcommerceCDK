@@ -229,12 +229,11 @@ function fetchProducts(orderRequest) { // buscando os produtos
     const params = {
         RequestItems: {
             [productsDdb]: {
-                Keys: [{
-                    Keys: keys,
-                }]
+                Keys: keys,
             }
         }
     };
+    console.log('batchGet params:', params);
 
     try {
         return ddbClient.batchGet(params).promise(); // economiza tempo de acesso no dynamo
