@@ -25,8 +25,6 @@ exports.handler = async function (event, context) {
 
     await Promise.all(promises);
 
-    console.log(`Order event created, orderId: ${event.productEvent.productId}, requestId: ${event.productEvent.requestId}`);
-
     return {}; // deu certo a execuçãod o lambda
 };
 
@@ -61,5 +59,4 @@ function createEvent(body) {
     } catch (err) {
         console.error(err);
     }
-
 }

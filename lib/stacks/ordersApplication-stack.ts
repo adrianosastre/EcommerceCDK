@@ -98,6 +98,7 @@ export class OrdersApplicationStack extends cdk.Stack {
     ordersTopic.addSubscription(new subs.SqsSubscription(orderEventsQueue));
 
     // Exemplo de ligar o tópico a um e-mail:
+    /*
     ordersTopic.addSubscription(
       new subs.EmailSubscription('adrianosastre@inatel.br', {
         json: true,
@@ -107,7 +108,7 @@ export class OrdersApplicationStack extends cdk.Stack {
           }),
         },
       })
-    );
+    );*/
 
     const orderEventsTestQueue = new sqs.Queue(this, 'OrderEventsTest', {
       queueName: 'order-events-test',
