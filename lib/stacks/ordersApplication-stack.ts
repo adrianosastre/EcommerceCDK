@@ -5,6 +5,7 @@ import * as dynamodb from '@aws-cdk/aws-dynamodb';
 import * as sns from '@aws-cdk/aws-sns';
 import * as subs from '@aws-cdk/aws-sns-subscriptions';
 import * as sqs from '@aws-cdk/aws-sqs';
+import { SqsEventSource } from '@aws-cdk/aws-lambda-event-sources';
 
 export class OrdersApplicationStack extends cdk.Stack {
   readonly ordersHandler: lambdaNodeJS.NodejsFunction;
@@ -13,6 +14,7 @@ export class OrdersApplicationStack extends cdk.Stack {
     scope: cdk.Construct,
     id: string,
     productsDdb: dynamodb.Table,
+    eventsDdb: dynamodb.Table,
     props?: cdk.StackProps
   ) {
     super(scope, id, props);
@@ -86,14 +88,14 @@ export class OrdersApplicationStack extends cdk.Stack {
     const orderEventsDlq = new sqs.Queue(this, 'OrderEventsDlq', {
       queueName: 'order-events-dlq',
     });
-    const orderEvents = new sqs.Queue(this, 'OrderEvents', {
+    const orderEventsQueue = new sqs.Queue(this, 'OrderEvents', {
       queueName: 'order-events',
       deadLetterQueue: {
         queue: orderEventsDlq,
         maxReceiveCount: 3,
       },
     });
-    ordersTopic.addSubscription(new subs.SqsSubscription(orderEvents));
+    ordersTopic.addSubscription(new subs.SqsSubscription(orderEventsQueue));
 
     // Exemplo de ligar o tópico a um e-mail:
     ordersTopic.addSubscription(
@@ -107,11 +109,11 @@ export class OrdersApplicationStack extends cdk.Stack {
       })
     );
 
-    const orderEventsTest = new sqs.Queue(this, 'OrderEventsTest', {
+    const orderEventsTestQueue = new sqs.Queue(this, 'OrderEventsTest', {
       queueName: 'order-events-test',
     });
     ordersTopic.addSubscription(
-      new subs.SqsSubscription(orderEventsTest, {
+      new subs.SqsSubscription(orderEventsTestQueue, {
         filterPolicy: {
           eventType: sns.SubscriptionFilter.stringFilter({
             allowlist: ['ORDER_CREATED'],
@@ -119,5 +121,28 @@ export class OrdersApplicationStack extends cdk.Stack {
         },
       })
     );
+
+    const orderEventsHandler = new lambdaNodeJS.NodejsFunction(
+      this,
+      'OrderEventsFunction',
+      {
+        functionName: 'OrderEventsFunction',
+        entry: 'lambda/orderEventsFunction.js',
+        handler: 'handler',
+        bundling: {
+          minify: false,
+          sourceMap: true,
+        },
+        tracing: lambda.Tracing.ACTIVE,
+        memorySize: 128,
+        timeout: cdk.Duration.seconds(10),
+        environment: {
+          EVENTS_DDB: eventsDdb.tableName,
+        },
+      }
+    );
+    orderEventsHandler.addEventSource(new SqsEventSource(orderEventsQueue));
+    eventsDdb.grantWriteData(orderEventsHandler);
+    orderEventsQueue.grantConsumeMessages(orderEventsHandler);
   }
 }

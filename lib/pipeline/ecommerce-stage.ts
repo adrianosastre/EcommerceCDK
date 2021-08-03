@@ -59,11 +59,13 @@ export class ECommerceStage extends cdk.Stage {
       this,
       "OrdersApplicationStack",
       productsDdbStack.table,
+      eventsDdbStack.table,
       {
         tags: tags,
       }
     );
     ordersApplicationStack.addDependency(productsDdbStack);
+    ordersApplicationStack.addDependency(eventsDdbStack);
 
     const ecommerceApiStack = new EcommerceApiStack(
       this,

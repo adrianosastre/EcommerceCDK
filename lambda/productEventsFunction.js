@@ -37,8 +37,10 @@ function createEvent(productEvent) {
             createdAt: timestamp,
             requestId: productEvent.requestId,
             eventType: productEvent.eventType,
-            productId: productEvent.productId,
-        }
+            info: {
+                productId: productEvent.productId,
+            },
+        },
     };
     try {
         return ddbClient.put(params).promise();
