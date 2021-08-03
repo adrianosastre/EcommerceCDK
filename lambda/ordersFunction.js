@@ -140,7 +140,7 @@ function sendOrderEvent(order, eventType, lambdaRequestId) {
     };
 
     const params = {
-        Mesage: JSON.stringify(envelope),
+        Message: JSON.stringify(envelope),
         TopicArn: orderEventsTopicArn,
         MessageAttributes: {
             eventType: {
