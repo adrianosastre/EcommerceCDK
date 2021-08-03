@@ -6,6 +6,7 @@ const xRay = AWSXRay.captureAWS(require("aws-sdk"));
 
 const productsDdb = process.env.PRODUCTS_DDB;
 const ordersDdb = process.env.ORDERS_DDB;
+const orderEventsTopicArn = process.env.ORDER_EVENTS_TOPIC_ARN;
 
 const awsRegion = process.env.AWS_REGION;
 AWS.config.update({
@@ -13,6 +14,7 @@ AWS.config.update({
 });
 
 const ddbClient = new AWS.DynamoDB.DocumentClient();
+const snsClient = new AWS.SNS();
 
 exports.handler = async function (event, context) {
 
@@ -66,6 +68,9 @@ exports.handler = async function (event, context) {
                 const orderCreated = await createOrder(orderRequest, products);
                 console.log(orderCreated);
 
+                const eventResult = await sendOrderEvent(orderCreated, 'ORDER_CREATED', lambdaRequestId);
+                console.debug(`Order created event sent, order Id: ${orderCreated.sk}, message id: ${eventResult.MessageId} `);
+
                 return {
                     statusCode: 201,
                     body: JSON.stringify(convertToOrderResponse(orderCreated)),
@@ -82,7 +87,14 @@ exports.handler = async function (event, context) {
                 event.queryStringParameters.orderId) {
                 const data = await getOrder(event.queryStringParameters.username, event.queryStringParameters.orderId);
                 if (data.Item) {
-                    await deleteOrder(event.queryStringParameters.username, event.queryStringParameters.orderId);
+                    const deleteOrderPromise = deleteOrder(event.queryStringParameters.username, event.queryStringParameters.orderId);
+
+                    const deleteOrderEventPromise = sendOrderEvent(data.Item, 'ORDER_DELETED', lambdaRequestId);
+
+                    const results = await Promise.all([deleteOrderPromise, deleteOrderEventPromise]);
+
+                    console.debug(`Order deleted event sent, order Id: ${data.Item.sk}, message id: ${results[1].MessageId} `);
+
                     return {
                         statusCode: 200,
                         body: JSON.stringify(convertToOrderResponse(data.Item)),
@@ -107,6 +119,39 @@ exports.handler = async function (event, context) {
         }),
     };
 };
+
+function sendOrderEvent(order, eventType, lambdaRequestId) {
+    const productCodes = [];
+    order.products.forEach((product) => {
+        productCodes.push(product.code);
+    });
+
+    const orderEvent = {
+        username: order.pk,
+        orderId: order.sk,
+        shipping: order.shipping,
+        productCodes: productCodes,
+        requestId: lambdaRequestId,
+    };
+
+    const envelope = {
+        eventType: eventType,
+        data: JSON.stringify(orderEvent),
+    };
+
+    const params = {
+        Mesage: JSON.stringify(envelope),
+        TopicArn: orderEventsTopicArn,
+        MessageAttributes: {
+            eventType: {
+                DataType: 'String',
+                StringValue: eventType, //ex: ORDER_CREATED or ORDER_DELETED
+            },
+        },
+    };
+
+    return snsClient.publish(params).promise();
+}
 
 function deleteOrder(username, orderId) {
     const params = {
