@@ -1,5 +1,5 @@
-import * as cdk from "@aws-cdk/core";
-import * as dynamodb from "@aws-cdk/aws-dynamodb";
+import * as cdk from '@aws-cdk/core';
+import * as dynamodb from '@aws-cdk/aws-dynamodb';
 
 export class EventsDdbStack extends cdk.Stack {
   readonly table: dynamodb.Table;
@@ -7,22 +7,35 @@ export class EventsDdbStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    this.table = new dynamodb.Table(this, "EventsDdb", {
-      tableName: "EventsDdb",
+    this.table = new dynamodb.Table(this, 'EventsDdb', {
+      tableName: 'EventsDdb',
       partitionKey: {
-        name: "pk",
+        name: 'pk',
         type: dynamodb.AttributeType.STRING,
       },
       sortKey: {
-        name: "sk",
+        name: 'sk',
         type: dynamodb.AttributeType.STRING,
       },
-      timeToLiveAttribute: "ttl",
+      timeToLiveAttribute: 'ttl',
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       //billingMode: dynamodb.BillingMode.PROVISIONED,
       //readCapacity: 1,
       //writeCapacity: 1,
+    });
+
+    this.table.addGlobalSecondaryIndex({
+      indexName: 'usernameIdx',
+      partitionKey: {
+        name: 'username',
+        type: dynamodb.AttributeType.STRING,
+      },
+      sortKey: {
+        name: 'pk',
+        type: dynamodb.AttributeType.STRING,
+      },
+      projectionType: dynamodb.ProjectionType.ALL,
     });
 
     /*const readScale = this.table.autoScaleReadCapacity({
