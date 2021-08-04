@@ -1,10 +1,11 @@
 import * as cdk from "@aws-cdk/core";
-import { ProductEventsFunctionStack } from './../stacks/productEventsFunction-stack';
 import { EventsDdbStack } from './../stacks/eventsDdb-stack';
 import { ProductsFunctionStack } from "../stacks/productsFunction-stack";
 import { EcommerceApiStack } from "../stacks/ecommerceApi-stack";
 import { ProductsDdbStack } from '../stacks/productsDdb-stack';
 import { OrdersApplicationStack } from '../stacks/ordersApplication-stack';
+import { ProductEventsFunctionStack } from './../stacks/productEventsFunction-stack';
+import { ProductEventsFetchFunctionStack } from './../stacks/productEventsFetchFunction-stack';
 
 export class ECommerceStage extends cdk.Stage {
   public readonly urlOutput: cdk.CfnOutput;
@@ -67,11 +68,22 @@ export class ECommerceStage extends cdk.Stage {
     ordersApplicationStack.addDependency(productsDdbStack);
     ordersApplicationStack.addDependency(eventsDdbStack);
 
+    const productEventsFetchFunctionStack = new ProductEventsFetchFunctionStack(
+      this,
+      "ProductEventsFetchFunctionStack",
+      eventsDdbStack.table,
+      {
+        tags: tags,
+      }
+    );
+    productEventsFetchFunctionStack.addDependency(eventsDdbStack);
+
     const ecommerceApiStack = new EcommerceApiStack(
       this,
       "EcommerceApiStack",
       productsFunctionStack.handler,
       ordersApplicationStack.ordersHandler,
+      productEventsFetchFunctionStack.handler,
       {
         tags: tags,
       }
