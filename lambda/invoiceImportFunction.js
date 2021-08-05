@@ -98,7 +98,7 @@ function createInvoice(invoice, key) {
     Key: {
       pk: `#invoice${invoice.customerName}`,
       sk: invoice.invoiceNumber,
-      totalValue = invoice.totalValue,
+      totalValue: invoice.totalValue,
       productId: invoice.productId,
       quantity: invoice.quantity,
       transactionId: key,
