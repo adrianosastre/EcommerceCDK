@@ -57,7 +57,7 @@ export class InvoiceImportApplicationStack extends cdk.Stack {
     );
 
     bucket.grantReadWrite(this.importHandler);
-    invoicesDdb.grantWriteData(this.importHandler);
+    invoicesDdb.grantReadWriteData(this.importHandler);
 
     bucket.addEventNotification(
       s3.EventType.OBJECT_CREATED_PUT,

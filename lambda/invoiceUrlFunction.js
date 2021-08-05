@@ -48,7 +48,7 @@ exports.handler = async function (event, context) {
     } else if (method === 'GET') {
       if (event.queryStringParameters && event.queryStringParameters.transactionId) {
         const transactionId = event.queryStringParameters.transactionId;
-        const data = await get(transactionId);
+        const data = await getInvoiceTransaction(transactionId);
         if (data.Item) {
           const data = await getInvoiceTransaction(key);
           return {
