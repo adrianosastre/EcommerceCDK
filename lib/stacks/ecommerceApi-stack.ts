@@ -12,6 +12,7 @@ export class EcommerceApiStack extends cdk.Stack {
     productsHandler: lambdaNodeJS.NodejsFunction,
     ordersHandler: lambdaNodeJS.NodejsFunction,
     productEventsFetchHandler: lambdaNodeJS.NodejsFunction,
+    invoiceUrlHandler: lambdaNodeJS.NodejsFunction,
     props?: cdk.StackProps
   ) {
     super(scope, id, props);
@@ -91,6 +92,14 @@ export class EcommerceApiStack extends cdk.Stack {
     );
 
     // invoices
+    const invoiceUrlFunctionIntegration = new apigateway.LambdaIntegration(
+      invoiceUrlHandler
+    );
+    const invoiceResource = api.root.addResource('invoices');
+    invoiceResource.addMethod('POST', invoiceUrlFunctionIntegration);
+
+    // GET /invoices?transactionId=xxx
+    invoiceResource.addMethod('GET', invoiceUrlFunctionIntegration);
 
     this.urlOutput = new cdk.CfnOutput(this, 'url', {
       exportName: 'url',
