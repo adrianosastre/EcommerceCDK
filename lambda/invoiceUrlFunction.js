@@ -50,7 +50,7 @@ exports.handler = async function (event, context) {
         const transactionId = event.queryStringParameters.transactionId;
         const data = await getInvoiceTransaction(transactionId);
         if (data.Item) {
-          const data = await getInvoiceTransaction(key);
+          const data = await getInvoiceTransaction(transactionId);
           return {
             statusCode: 200,
             body: JSON.stringify({
