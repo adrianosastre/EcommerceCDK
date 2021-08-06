@@ -26,7 +26,7 @@ exports.handler = async function (event, context) {
 
   const params = {
     Key: key,
-    Name: record.bucket.name,
+    Bucket: record.bucket.name,
   };
 
   const obj = await s3Client.getObject(params).promise();

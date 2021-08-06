@@ -20,6 +20,7 @@ exports.handler = async function (event, context) {
     console.log('record:', record);
 
     if (record.eventName === 'INSERT') {
+      console.log(`newimage pk.s:`, record.dynamodb.NewImage.pk.S);
       if (record.dynamodb.NewImage.pk.S.startsWith('#invoice')) {
         // invoice event
         console.log(`Invoice event received`);
