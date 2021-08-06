@@ -72,7 +72,7 @@ function createEvent(item, eventType) {
   };
 
   try {
-    await ddbClient.put(params).promise();
+    return ddbClient.put(params).promise();
   } catch (err) {
     return err;
   }
