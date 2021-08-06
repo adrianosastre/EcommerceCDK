@@ -82,10 +82,12 @@ export class ECommerceStage extends cdk.Stage {
     const invoiceImportApplicationStack = new InvoiceImportApplicationStack(
       this,
       "InvoiceImportApplicationStack",
+      eventsDdbStack.table,
       {
         tags: tags,
       }
     );
+    invoiceImportApplicationStack.addDependency(eventsDdbStack);
 
     const ecommerceApiStack = new EcommerceApiStack(
       this,

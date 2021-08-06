@@ -95,7 +95,7 @@ function getInvoiceTransaction(key) {
 
 function createInvoiceTransaction(key, requestId, expiresIn, /* , username */ ) {
   const timestamp = Date.now();
-  const ttl = ~~(timestamp / 1000 + 60 * 60); // 1 hora
+  const ttl = ~~(timestamp / 1000 + 60 * 3); // 3 minutos
 
   const params = {
     TableName: invoicesDdb,

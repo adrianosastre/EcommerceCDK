@@ -16,42 +16,39 @@ exports.handler = async function (event, context) {
 
   console.log('Números de records: ', event.Records.length);
 
-  //event.Records.forEach((record) => {
-    const record = event.Records[0].s3;
-    console.log('s3 record: ', record);
+  const record = event.Records[0].s3;
+  console.log('s3 record: ', record);
 
-    const key = record.object.key;
+  const key = record.object.key;
 
-    const transactionResult = await getInvoiceTransaction(key);
-    const invoiceTransaction = transactionResult.Item;
+  const transactionResult = await getInvoiceTransaction(key);
+  const invoiceTransaction = transactionResult.Item;
 
-    const params = {
-      Key: key,
-      Name: record.bucket.name,
-    };
+  const params = {
+    Key: key,
+    Name: record.bucket.name,
+  };
 
-    const obj = await s3Client.getObject(params).promise();
-    const invoice = JSON.parse(obj.Body.toString('utf-8'));
-    console.log('invoice:', invoice);
+  const obj = await s3Client.getObject(params).promise();
+  const invoice = JSON.parse(obj.Body.toString('utf-8'));
+  console.log('invoice:', invoice);
+
+  if (invoiceTransaction) {
+    await updateInvoiceTransaction(key, 'INVOICE_RECEIVED');
+  }
+
+  if (invoice.invoiceNumber) {
+    const createInvoicePromise = createInvoice(invoice, key);
+    const deleteInvoicePromise = s3Client.deleteObject(params);
+
+    await Promise.all([createInvoicePromise, deleteInvoicePromise]);
 
     if (invoiceTransaction) {
-      await updateInvoiceTransaction(key, 'INVOICE_RECEIVED');
+      await updateInvoiceTransaction(key, 'INVOICE_PROCESSED');
     }
-
-    if (invoice.invoiceNumber) {
-      const createInvoicePromise = createInvoice(invoice, key);
-      const deleteInvoicePromise = s3Client.deleteObject(params);
-
-      await Promise.all([createInvoicePromise, deleteInvoicePromise]);
-
-      if (invoiceTransaction) {
-        await updateInvoiceTransaction(key, 'INVOICE_PROCESSED');
-      }
-    } else {
-      await updateInvoiceTransaction(key, 'FAIL_NO_INVOICE_NUMBER');
-    }
-
-  //});
+  } else {
+    await updateInvoiceTransaction(key, 'FAIL_NO_INVOICE_NUMBER');
+  }
 
   return {};
 }
