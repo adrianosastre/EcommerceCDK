@@ -67,7 +67,7 @@ function updateInvoiceTransaction(key, status) {
   };
 
   try {
-    return ddbClient.udpate(params).promise();
+    return ddbClient.update(params).promise();
   } catch (err) {
     return err;
   }
