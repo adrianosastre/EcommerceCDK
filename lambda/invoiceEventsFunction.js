@@ -19,6 +19,8 @@ exports.handler = async function (event, context) {
   event.Records.forEach((record) => {
     console.log('record:', record);
 
+    //record.dynamodb.Keys.pk.S é melhor
+
     if (record.eventName === 'INSERT') {
       console.log(`newimage pk.s:`, record.dynamodb.NewImage.pk.S);
       if (record.dynamodb.NewImage.pk.S.startsWith('#invoice')) {
@@ -33,10 +35,10 @@ exports.handler = async function (event, context) {
 
     } else if (record.eventName === 'REMOVE') {
 
-      if (record.dynamodb.NewImage.pk.S.startsWith('#invoice')) {
+      if (record.dynamodb.OldImage.pk.S.startsWith('#invoice')) {
         // invoice event
         console.log(`Invoice event received`);
-      } else if (record.dynamodb.NewImage.pk.S.startsWith('#transaction')) {
+      } else if (record.dynamodb.OldImage.pk.S.startsWith('#transaction')) {
         // invoice transaction event
         console.log(`Invoice transaction event received`);
         if (record.dynamodb.OldImage.transactionStatus.S === 'INVOICE_PROCESSED') {

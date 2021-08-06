@@ -92,7 +92,7 @@ function getInvoiceTransaction(key) {
 function createInvoice(invoice, key) {
   const params = {
     TableName: invoicesDdb,
-    Key: {
+    Item: {
       pk: `#invoice${invoice.customerName}`,
       sk: invoice.invoiceNumber,
       totalValue: invoice.totalValue,
