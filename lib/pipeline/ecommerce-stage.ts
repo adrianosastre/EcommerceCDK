@@ -1,12 +1,13 @@
-import * as cdk from "@aws-cdk/core";
+import * as cdk from '@aws-cdk/core';
 import { EventsDdbStack } from './../stacks/eventsDdb-stack';
-import { ProductsFunctionStack } from "../stacks/productsFunction-stack";
-import { EcommerceApiStack } from "../stacks/ecommerceApi-stack";
+import { ProductsFunctionStack } from '../stacks/productsFunction-stack';
+import { EcommerceApiStack } from '../stacks/ecommerceApi-stack';
 import { ProductsDdbStack } from '../stacks/productsDdb-stack';
 import { OrdersApplicationStack } from '../stacks/ordersApplication-stack';
 import { ProductEventsFunctionStack } from './../stacks/productEventsFunction-stack';
 import { ProductEventsFetchFunctionStack } from './../stacks/productEventsFetchFunction-stack';
 import { InvoiceImportApplicationStack } from './../stacks/invoiceImportApplication-stack';
+import { InvoiceWsApplicationStack } from '../stacks/invoicewsApplication-stack';
 
 export class ECommerceStage extends cdk.Stage {
   public readonly urlOutput: cdk.CfnOutput;
@@ -15,29 +16,21 @@ export class ECommerceStage extends cdk.Stage {
     super(scope, id, props);
 
     const tags = {
-      ["cost"]: "Ecommerce",
-      ["team"]: "adrianosastre",
+      ['cost']: 'Ecommerce',
+      ['team']: 'adrianosastre',
     };
 
-    const productsDdbStack = new ProductsDdbStack(
-      this,
-      "ProductsDdbStack",
-      {
-        tags: tags,
-      }
-    );
+    const productsDdbStack = new ProductsDdbStack(this, 'ProductsDdbStack', {
+      tags: tags,
+    });
 
-    const eventsDdbStack = new EventsDdbStack(
-      this,
-      "EventsDdbStack",
-      {
-        tags: tags,
-      }
-    );
+    const eventsDdbStack = new EventsDdbStack(this, 'EventsDdbStack', {
+      tags: tags,
+    });
 
     const productEventsFunctionStack = new ProductEventsFunctionStack(
       this,
-      "ProductEventsFunctionStack",
+      'ProductEventsFunctionStack',
       eventsDdbStack.table,
       {
         tags: tags,
@@ -47,7 +40,7 @@ export class ECommerceStage extends cdk.Stage {
 
     const productsFunctionStack = new ProductsFunctionStack(
       this,
-      "ProductsFunctionStack",
+      'ProductsFunctionStack',
       productsDdbStack.table,
       productEventsFunctionStack.handler,
       {
@@ -59,7 +52,7 @@ export class ECommerceStage extends cdk.Stage {
 
     const ordersApplicationStack = new OrdersApplicationStack(
       this,
-      "OrdersApplicationStack",
+      'OrdersApplicationStack',
       productsDdbStack.table,
       eventsDdbStack.table,
       {
@@ -71,7 +64,7 @@ export class ECommerceStage extends cdk.Stage {
 
     const productEventsFetchFunctionStack = new ProductEventsFetchFunctionStack(
       this,
-      "ProductEventsFetchFunctionStack",
+      'ProductEventsFetchFunctionStack',
       eventsDdbStack.table,
       {
         tags: tags,
@@ -81,7 +74,7 @@ export class ECommerceStage extends cdk.Stage {
 
     const invoiceImportApplicationStack = new InvoiceImportApplicationStack(
       this,
-      "InvoiceImportApplicationStack",
+      'InvoiceImportApplicationStack',
       eventsDdbStack.table,
       {
         tags: tags,
@@ -91,7 +84,7 @@ export class ECommerceStage extends cdk.Stage {
 
     const ecommerceApiStack = new EcommerceApiStack(
       this,
-      "EcommerceApiStack",
+      'EcommerceApiStack',
       productsFunctionStack.handler,
       ordersApplicationStack.ordersHandler,
       productEventsFetchFunctionStack.handler,
@@ -106,5 +99,13 @@ export class ECommerceStage extends cdk.Stage {
     ecommerceApiStack.addDependency(invoiceImportApplicationStack);
 
     this.urlOutput = ecommerceApiStack.urlOutput;
+
+    const invoiceWsApplicationStack = new InvoiceWsApplicationStack(
+      this,
+      'InvoiceWsApplicationStack',
+      {
+        tags: tags,
+      }
+    );
   }
 }
