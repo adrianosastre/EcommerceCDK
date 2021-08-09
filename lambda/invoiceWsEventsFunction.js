@@ -14,7 +14,7 @@ exports.handler = async function (event, context) {
 
   const promises = [];
 
-  event.Records.forEach((record) => {
+  event.Records.forEach(async (record) => {
     console.log('record:', record);
 
     //record.dynamodb.Keys.pk.S é melhor
