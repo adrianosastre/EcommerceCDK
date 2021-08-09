@@ -7,7 +7,7 @@ import { OrdersApplicationStack } from '../stacks/ordersApplication-stack';
 import { ProductEventsFunctionStack } from './../stacks/productEventsFunction-stack';
 import { ProductEventsFetchFunctionStack } from './../stacks/productEventsFetchFunction-stack';
 import { InvoiceImportApplicationStack } from './../stacks/invoiceImportApplication-stack';
-import { InvoiceWsApplicationStack } from '../stacks/invoicewsApplication-stack';
+import { InvoiceWsApplicationStack } from '../stacks/invoiceWsApplication-stack';
 
 export class ECommerceStage extends cdk.Stage {
   public readonly urlOutput: cdk.CfnOutput;
