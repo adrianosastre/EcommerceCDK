@@ -11,9 +11,9 @@ AWS.config.update({
 
 const invoicesDdb = process.env.INVOICES_DDB;
 const bucketName = process.env.BUCKET_NAME;
-const invoiceWsApiEndpoint = process.env.INVOICE_WSAPI_ENDPOINT;
+const invoiceWsApiEndpoint = process.env.INVOICE_WSAPI_ENDPOINT.substring(6);
 
-const s3 = new AWS.S3();
+const s3Client = new AWS.S3();
 const ddbClient = new AWS.DynamoDB.DocumentClient();
 const apiGwManagementApi = new AWS.ApiGatewayManagementApi({
   apiVersion: "2018-11-29",
@@ -51,7 +51,7 @@ exports.handler = async function (event, context) {
   await apiGwManagementApi.postToConnection({
     ConnectionId: connectionId,
     Data: postData,
-  });
+  }).promise();
 
   // a resposta aqui não vai para o cliente no retorno da função lambda porque
   // essa função foi trigada por um websocket api
