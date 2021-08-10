@@ -156,6 +156,7 @@ export class InvoiceWsApplicationStack extends cdk.Stack {
     );
     invoicesDdb.grantReadWriteData(invoiceImportHandler);
     bucket.grantReadWrite(invoiceImportHandler);
+    auditBus.grantPutEventsTo(invoiceImportHandler);
 
     bucket.addEventNotification(
       s3.EventType.OBJECT_CREATED_PUT,
@@ -254,6 +255,7 @@ export class InvoiceWsApplicationStack extends cdk.Stack {
       }
     );
 
+    auditBus.grantPutEventsTo(invoiceEventsHandler);
     invoiceEventsHandler.addToRolePolicy(wsApiPolicy);
 
     const invoiceEventsDlq = new sqs.Queue(this, 'InvoiceEventsDlq2', {

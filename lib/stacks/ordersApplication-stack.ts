@@ -87,6 +87,7 @@ export class OrdersApplicationStack extends cdk.Stack {
     productsDdb.grantReadData(this.ordersHandler);
     ordersDdb.grantReadWriteData(this.ordersHandler);
     ordersTopic.grantPublish(this.ordersHandler);
+    auditBus.grantPutEventsTo(this.ordersHandler);
 
     const orderEventsDlq = new sqs.Queue(this, 'OrderEventsDlq', {
       queueName: 'order-events-dlq',
