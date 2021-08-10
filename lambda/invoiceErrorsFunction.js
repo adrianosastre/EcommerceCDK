@@ -1,5 +1,4 @@
 const AWS = require("aws-sdk");
-const uuid = require("uuid");
 
 const AWSXRay = require("aws-xray-sdk-core");
 const xRay = AWSXRay.captureAWS(require("aws-sdk"));

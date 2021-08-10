@@ -8,6 +8,7 @@ import { ProductEventsFunctionStack } from './../stacks/productEventsFunction-st
 import { ProductEventsFetchFunctionStack } from './../stacks/productEventsFetchFunction-stack';
 import { InvoiceImportApplicationStack } from './../stacks/invoiceImportApplication-stack';
 import { InvoiceWsApplicationStack } from '../stacks/invoiceWsApplication-stack';
+import { AuditEventBusStack } from '../stacks/auditEventBus-stack';
 
 export class ECommerceStage extends cdk.Stage {
   public readonly urlOutput: cdk.CfnOutput;
@@ -19,6 +20,14 @@ export class ECommerceStage extends cdk.Stage {
       ['cost']: 'Ecommerce',
       ['team']: 'adrianosastre',
     };
+
+    const auditEventBusStack = new AuditEventBusStack(
+      this,
+      'AuditEventBusStack',
+      {
+        tags: tags,
+      }
+    );
 
     const productsDdbStack = new ProductsDdbStack(this, 'ProductsDdbStack', {
       tags: tags,
@@ -55,12 +64,14 @@ export class ECommerceStage extends cdk.Stage {
       'OrdersApplicationStack',
       productsDdbStack.table,
       eventsDdbStack.table,
+      auditEventBusStack.bus,
       {
         tags: tags,
       }
     );
     ordersApplicationStack.addDependency(productsDdbStack);
     ordersApplicationStack.addDependency(eventsDdbStack);
+    ordersApplicationStack.addDependency(auditEventBusStack);
 
     const productEventsFetchFunctionStack = new ProductEventsFetchFunctionStack(
       this,
@@ -103,9 +114,12 @@ export class ECommerceStage extends cdk.Stage {
     const invoiceWsApplicationStack = new InvoiceWsApplicationStack(
       this,
       'InvoiceWsApplicationStack',
+      auditEventBusStack.bus,
       {
         tags: tags,
       }
     );
+    invoiceWsApplicationStack.addDependency(auditEventBusStack);
+
   }
 }

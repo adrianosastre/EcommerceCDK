@@ -8,12 +8,18 @@ import * as s3 from '@aws-cdk/aws-s3';
 import * as s3n from '@aws-cdk/aws-s3-notifications';
 import * as iam from '@aws-cdk/aws-iam';
 import * as sqs from '@aws-cdk/aws-sqs';
+import * as events from '@aws-cdk/aws-events';
 import { DynamoEventSource, SqsDlq } from '@aws-cdk/aws-lambda-event-sources';
 
 export class InvoiceWsApplicationStack extends cdk.Stack {
   readonly handler: lambdaNodeJS.NodejsFunction;
 
-  constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
+  constructor(
+    scope: cdk.Construct,
+    id: string,
+    auditBus: events.EventBus,
+    props?: cdk.StackProps
+  ) {
     super(scope, id, props);
 
     const bucket = new s3.Bucket(this, 'InvoiceBucket2', {
@@ -144,6 +150,7 @@ export class InvoiceWsApplicationStack extends cdk.Stack {
         timeout: cdk.Duration.seconds(3),
         environment: {
           INVOICES_DDB: invoicesDdb.tableName,
+          AUDIT_BUS_NAME: auditBus.eventBusName,
         },
       }
     );
@@ -242,6 +249,7 @@ export class InvoiceWsApplicationStack extends cdk.Stack {
         timeout: cdk.Duration.seconds(10),
         environment: {
           EVENTS_DDB: eventsDdb.tableName,
+          AUDIT_BUS_NAME: auditBus.eventBusName,
         },
       }
     );

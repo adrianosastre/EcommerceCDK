@@ -14,6 +14,9 @@ const invoicesDdb = process.env.INVOICES_DDB;
 const s3Client = new AWS.S3();
 const ddbClient = new AWS.DynamoDB.DocumentClient();
 
+const auditBusName = process.env.AUDIT_BUS_NAME;
+const eventBridgeClient = new AWS.EventBridge();
+
 exports.handler = async function (event, context) {
 
   console.log(event);
@@ -65,6 +68,23 @@ exports.handler = async function (event, context) {
       ]);
     }
   } else {
+
+    const params = {
+      Entries: [{
+        EventBusName: auditBusName,
+        Source: 'app.invoice',
+        DetailType: 'invoice',
+        Time: new Date(),
+        Detail: JSON.stringify({ // detail é um JSON livre
+          errorDetail: 'FAIL_NO_INVOICE_NUMBER',
+          invoiceKey: key,
+          customerName: invoice.customerName,
+        }),
+      }, ],
+    };
+    const result = await eventBridgeClient.putEvents(params).promise(); //publicou no event bus
+    console.log(result);
+
     if (invoiceTransaction) {
       await Promise.all([
         sendInvoiceStatus(apiGwManagementApi, invoiceTransaction, 'FAIL_NO_INVOICE_NUMBER'),

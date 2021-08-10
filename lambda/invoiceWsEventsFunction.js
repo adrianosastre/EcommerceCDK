@@ -8,13 +8,19 @@ AWS.config.update({
   region: awsRegion,
 });
 
+const auditBusName = process.env.AUDIT_BUS_NAME;
+const eventBridgeClient = new AWS.EventBridge();
+
 exports.handler = async function (event, context) {
 
   console.log(event);
 
   const promises = [];
 
-  event.Records.forEach(async (record) => {
+  //event.Records.forEach(async (record) => { não usar async dentro de foreach!
+  for (let index = 0; index < event.Records.length; index++) {
+    const record = event.Records[index];
+
     console.log('record:', record);
 
     //record.dynamodb.Keys.pk.S é melhor
@@ -49,22 +55,42 @@ exports.handler = async function (event, context) {
           endpoint: endpoint,
         });
 
-        const getConnectionResult = await apiGwManagementApi.getConnection({
-          ConnectionId: connectionId,
-        }).promise();
-        console.log(getConnectionResult);
+        try {
 
-        if (record.dynamodb.OldImage.transactionStatus.S === 'INVOICE_PROCESSED') {
-          console.log('Invoice processed with success');
-        } else {
-          console.warn('Timeout importing invoice, failed, last transaction status: ', record.dynamodb.OldImage.transactionStatus.S);
+          const getConnectionResult = await apiGwManagementApi.getConnection({
+            ConnectionId: connectionId,
+          }).promise();
+          console.log(getConnectionResult);
 
-          await sendInvoiceStatus(apiGwManagementApi, transactionId, connectionId, 'TIMEOUT');
-          await disconnectClient(apiGwManagementApi, connectionId);
+          if (record.dynamodb.OldImage.transactionStatus.S === 'INVOICE_PROCESSED') {
+            console.log('Invoice processed with success');
+          } else {
+            console.warn('Timeout importing invoice, failed, last transaction status: ', record.dynamodb.OldImage.transactionStatus.S);
+
+            const params = {
+              Entries: [{
+                  EventBusName: auditBusName,
+                  Source: 'app.invoice',
+                  DetailType: 'invoice',
+                  Time: new Date(),
+                  Detail: JSON.stringify({ // detail é um JSON livre
+                      errorDetail: 'TIMEOUT',
+                      transactionId: transactionId,
+                  }),
+              }, ],
+          };
+          const result = await eventBridgeClient.putEvents(params).promise(); //publicou no event bus
+          console.log(result);
+
+            await sendInvoiceStatus(apiGwManagementApi, transactionId, connectionId, 'TIMEOUT');
+            await disconnectClient(apiGwManagementApi, connectionId);
+          }
+        } catch (err) {
+          console.log('exceção:', err);
         }
       }
     }
-  });
+  }
 
   await Promise.all(promises);
 

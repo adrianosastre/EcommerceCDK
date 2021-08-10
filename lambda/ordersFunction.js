@@ -7,6 +7,7 @@ const xRay = AWSXRay.captureAWS(require("aws-sdk"));
 const productsDdb = process.env.PRODUCTS_DDB;
 const ordersDdb = process.env.ORDERS_DDB;
 const orderEventsTopicArn = process.env.ORDER_EVENTS_TOPIC_ARN;
+const auditBusName = process.env.AUDIT_BUS_NAME;
 
 const awsRegion = process.env.AWS_REGION;
 AWS.config.update({
@@ -15,6 +16,7 @@ AWS.config.update({
 
 const ddbClient = new AWS.DynamoDB.DocumentClient();
 const snsClient = new AWS.SNS();
+const eventBridgeClient = new AWS.EventBridge();
 
 exports.handler = async function (event, context) {
 
@@ -100,6 +102,21 @@ exports.handler = async function (event, context) {
                         body: JSON.stringify(convertToOrderResponse(data.Item)),
                     };
                 } else {
+                    const params = {
+                        Entries: [{
+                            EventBusName: auditBusName,
+                            Source: 'app.order',
+                            DetailType: 'order',
+                            Time: new Date(),
+                            Detail: JSON.stringify({ // detail é um JSON livre
+                                reason: 'PRODUCT_NOT_FOUND',
+                                orderRequest: orderRequest,
+                            }),
+                        }, ],
+                    };
+                    const result = await eventBridgeClient.putEvents(params).promise(); //publicou no event bus
+                    console.log(result);
+
                     return {
                         statusCode: 404,
                         body: JSON.stringify(`Order with username ${event.queryStringParameters.username} and id ${event.queryStringParameters.orderId} not found`),
